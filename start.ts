@@ -24,21 +24,21 @@ try {
 await new Promise((r) => setTimeout(r, 1000));
 
 // Setup profile directory
-execSync("mkdir -p ~/.cache/scraping", { stdio: "ignore" });
+execSync("mkdir -p ~/.cache//browser-tools", { stdio: "ignore" });
 
 if (useProfile) {
 	// Sync profile with rsync (much faster on subsequent runs)
 	execSync(
-		'rsync -a --delete "/Users/badlogic/Library/Application Support/Google/Chrome/" ~/.cache/scraping/',
+		'rsync -a --delete "/Users/badlogic/Library/Application Support/Google/Chrome/" ~/.cache//browser-tools/',
 		{ stdio: "pipe" },
 	);
 }
 
-// Start Chrome in background
+// Start Chrome in background (detached so Node can exit)
 exec(
-	'/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.cache/scraping"',
-	{ shell: true },
-);
+	'/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.cache/browser-tools"',
+	{ detached: true, stdio: "ignore" },
+).unref();
 
 // Wait for Chrome to be ready by attempting to connect
 let connected = false;
