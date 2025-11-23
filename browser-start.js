@@ -6,21 +6,18 @@ import { existsSync } from "node:fs";
 import puppeteer from "puppeteer-core";
 
 const useProfile = process.argv.includes("--profile");
-const useHeadless = process.argv.includes("--headless");
 const isLinux = platform() === "linux";
 
-const validArgs = ["--profile", "--headless"];
+const validArgs = ["--profile"];
 const hasInvalidArg = process.argv.slice(2).some(arg => !validArgs.includes(arg));
 
 if (hasInvalidArg) {
-	console.log("Usage: browser-start.js [--profile] [--headless]");
+	console.log("Usage: browser-start.js [--profile]");
 	console.log("\nOptions:");
-	console.log("  --profile   Copy your default Chrome profile (cookies, logins)");
-	console.log("  --headless  Run in headless mode (no visible browser window)");
+	console.log("  --profile  Copy your default Chrome profile (cookies, logins)");
 	console.log("\nExamples:");
-	console.log("  browser-start.js            # Start with visible browser window");
+	console.log("  browser-start.js            # Start with fresh profile");
 	console.log("  browser-start.js --profile  # Start with your Chrome profile");
-	console.log("  browser-start.js --headless # Start in headless mode");
 	process.exit(1);
 }
 
@@ -101,10 +98,6 @@ if (isLinux) {
 	);
 }
 
-// Add headless flag only if explicitly requested
-if (useHeadless) {
-	chromeArgs.push("--headless=new", "--disable-gpu");
-}
 
 // Start Chrome in background (detached so Node can exit)
 const chromeProcess = spawn(chromePath, chromeArgs, {
@@ -146,6 +139,5 @@ if (!connected) {
 	process.exit(1);
 }
 
-const mode = useHeadless ? " (headless)" : " (visible)";
 const profile = useProfile ? " with your profile" : "";
-console.log(`✓ Chrome started on :9222${mode}${profile}`);
+console.log(`✓ Chrome started on :9222${profile}`);
