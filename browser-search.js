@@ -51,7 +51,9 @@ const b = await Promise.race([
 	process.exit(1);
 });
 
-const p = (await b.pages()).at(-1);
+const pages = await b.pages();
+// Create a new page if none exist (common in headless mode)
+const p = pages.at(-1) || await b.newPage();
 if (!p) {
 	console.error("✗ No active tab found");
 	process.exit(1);

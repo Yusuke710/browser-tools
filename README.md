@@ -1,6 +1,20 @@
 # Browser Tools
 
-Chrome DevTools Protocol tools for agent-assisted web automation. These tools connect to Chrome running on `:9222` with remote debugging enabled.
+Chrome DevTools Protocol tools for agent-assisted web automation. These tools connect to Chrome/Chromium running on `:9222` with remote debugging enabled.
+
+**Supports both macOS and Linux** (including headless Docker environments).
+
+## Linux Setup
+
+Install Chromium first:
+```bash
+sudo apt install -y chromium-browser
+```
+
+On Linux, `browser-start.js` will automatically:
+- Find Chromium at `/usr/bin/chromium-browser` (or `/usr/bin/chromium`, `/usr/bin/google-chrome`)
+- Run in headless mode with sandbox disabled (for Docker)
+- Use `pkill` instead of `killall` for process management
 
 ## How to Invoke These Tools
 
