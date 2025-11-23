@@ -5,11 +5,18 @@ import { platform } from "node:os";
 import { existsSync } from "node:fs";
 import puppeteer from "puppeteer-core";
 
-const useProfile = process.argv[2] === "--profile";
+const args = process.argv.slice(2);
+const useProfile = args.includes("--profile");
+const useHeadless = args.includes("--headless");
 const isLinux = platform() === "linux";
 
-if (process.argv[2] && process.argv[2] !== "--profile") {
-	console.log("Usage: browser-start.js [--profile]");
+const validArgs = ["--profile", "--headless"];
+const invalidArg = args.find(arg => !validArgs.includes(arg));
+if (invalidArg) {
+	console.log("Usage: browser-start.js [--headless] [--profile]");
+	console.log("\nOptions:");
+	console.log("  --headless  Run Chrome in headless mode (no display required)");
+	console.log("  --profile   Copy your default Chrome profile (cookies, logins)");
 	process.exit(1);
 }
 
@@ -61,6 +68,10 @@ const chromeArgs = [
 	`--user-data-dir=${process.env["HOME"]}/.cache/scraping`,
 ];
 
+if (useHeadless) {
+	chromeArgs.push("--headless=new");
+}
+
 if (isLinux) {
 	chromeArgs.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage");
 }
@@ -86,4 +97,5 @@ if (!connected) {
 	process.exit(1);
 }
 
-console.log(`✓ Chrome started on :9222${useProfile ? " with profile" : ""}`);
+const flags = [useHeadless && "headless", useProfile && "profile"].filter(Boolean).join(", ");
+console.log(`✓ Chrome started on :9222${flags ? ` (${flags})` : ""}`);
