@@ -30,9 +30,7 @@ if (newTab) {
 	await p.goto(url, { waitUntil: "domcontentloaded" });
 	console.log("✓ Opened:", url);
 } else {
-	const pages = await b.pages();
-	// Create a new page if none exist
-	const p = pages.at(-1) || await b.newPage();
+	const p = (await b.pages()).at(-1);
 	await p.goto(url, { waitUntil: "domcontentloaded" });
 	console.log("✓ Navigated to:", url);
 }
