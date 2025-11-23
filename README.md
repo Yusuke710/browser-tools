@@ -6,14 +6,40 @@ Chrome DevTools Protocol tools for agent-assisted web automation. These tools co
 
 ## Linux Setup
 
-Install Chromium first:
+Install Chromium and display dependencies:
 ```bash
-sudo apt install -y chromium-browser
+sudo apt install -y chromium-browser xvfb x11vnc novnc
+```
+
+### Visible Browser Mode (Manus-like experience)
+
+To see the browser window in Docker, you need a virtual display with VNC:
+
+```bash
+# Start virtual display
+Xvfb :99 -screen 0 1280x720x24 &
+export DISPLAY=:99
+
+# Start VNC server (optional - to view remotely)
+x11vnc -display :99 -forever -nopw &
+
+# Start noVNC web interface (optional - view in browser at http://localhost:6080)
+/usr/share/novnc/utils/launch.sh --vnc localhost:5900 &
+
+# Now start the browser (visible mode is default)
+browser-start.js
+```
+
+### Headless Mode (no display needed)
+
+For automation without a display:
+```bash
+browser-start.js --headless
 ```
 
 On Linux, `browser-start.js` will automatically:
 - Find Chromium at `/usr/bin/chromium-browser` (or `/usr/bin/chromium`, `/usr/bin/google-chrome`)
-- Run in headless mode with sandbox disabled (for Docker)
+- Add `--no-sandbox` flags for Docker compatibility
 - Use `pkill` instead of `killall` for process management
 
 ## How to Invoke These Tools
@@ -36,11 +62,15 @@ node browser-start.js        # Don't use 'node' prefix
 ## Start Chrome
 
 ```bash
-browser-start.js              # Fresh profile
-browser-start.js --profile    # Copy user's profile (cookies, logins)
+browser-start.js                      # Visible browser with fresh profile
+browser-start.js --profile            # Visible browser with user's profile
+browser-start.js --headless           # Headless mode (no window)
+browser-start.js --headless --profile # Headless with user's profile
 ```
 
-Launch Chrome with remote debugging on `:9222`. Use `--profile` to preserve user's authentication state.
+Launch Chrome with remote debugging on `:9222`. Options:
+- `--profile` - Copy user's Chrome profile (cookies, logins)
+- `--headless` - Run without visible window (for automation)
 
 ## Navigate
 

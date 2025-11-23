@@ -5,16 +5,22 @@ import { platform } from "node:os";
 import { existsSync } from "node:fs";
 import puppeteer from "puppeteer-core";
 
-const useProfile = process.argv[2] === "--profile";
+const useProfile = process.argv.includes("--profile");
+const useHeadless = process.argv.includes("--headless");
 const isLinux = platform() === "linux";
 
-if (process.argv[2] && process.argv[2] !== "--profile") {
-	console.log("Usage: browser-start.js [--profile]");
+const validArgs = ["--profile", "--headless"];
+const hasInvalidArg = process.argv.slice(2).some(arg => !validArgs.includes(arg));
+
+if (hasInvalidArg) {
+	console.log("Usage: browser-start.js [--profile] [--headless]");
 	console.log("\nOptions:");
-	console.log("  --profile  Copy your default Chrome profile (cookies, logins)");
+	console.log("  --profile   Copy your default Chrome profile (cookies, logins)");
+	console.log("  --headless  Run in headless mode (no visible browser window)");
 	console.log("\nExamples:");
-	console.log("  browser-start.js            # Start with fresh profile");
+	console.log("  browser-start.js            # Start with visible browser window");
 	console.log("  browser-start.js --profile  # Start with your Chrome profile");
+	console.log("  browser-start.js --headless # Start in headless mode");
 	process.exit(1);
 }
 
@@ -86,15 +92,18 @@ const chromeArgs = [
 	`--user-data-dir=${process.env["HOME"]}/.cache/scraping`,
 ];
 
-// Add Linux-specific flags for headless/Docker environments
+// Add Linux-specific flags for Docker environments
 if (isLinux) {
 	chromeArgs.push(
 		"--no-sandbox",
 		"--disable-setuid-sandbox",
-		"--disable-dev-shm-usage",
-		"--disable-gpu",
-		"--headless=new"
+		"--disable-dev-shm-usage"
 	);
+}
+
+// Add headless flag only if explicitly requested
+if (useHeadless) {
+	chromeArgs.push("--headless=new", "--disable-gpu");
 }
 
 // Start Chrome in background (detached so Node can exit)
@@ -137,6 +146,6 @@ if (!connected) {
 	process.exit(1);
 }
 
-const mode = isLinux ? " (headless)" : "";
+const mode = useHeadless ? " (headless)" : " (visible)";
 const profile = useProfile ? " with your profile" : "";
 console.log(`✓ Chrome started on :9222${mode}${profile}`);
