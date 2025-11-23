@@ -23,7 +23,7 @@ const b = await Promise.race([
 });
 
 const pages = await b.pages();
-// Create a new page if none exist (common in headless mode)
+// Create a new page if none exist
 const p = pages.at(-1) || await b.newPage();
 
 if (!p) {
