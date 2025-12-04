@@ -1,37 +1,16 @@
-> **⚠️ DEPRECATED**: This repository has been moved to [badlogic/agent-tools](https://github.com/badlogic/agent-tools). Please use that repository instead.
-
----
-
 # Browser Tools
 
 Chrome DevTools Protocol tools for agent-assisted web automation. These tools connect to Chrome/Chromium running on `:9222` with remote debugging enabled.
 
 **Supports both macOS and Linux** (including headless Docker environments).
 
+This fork is modified and intended to be used with Claude Code in Docker.
+
 ## Linux Setup
 
-Install Chromium and display dependencies:
+Install Chromium:
 ```bash
-sudo apt install -y chromium-browser xvfb x11vnc novnc
-```
-
-### Virtual Display Setup (for Docker)
-
-To see the browser window in Docker, you need a virtual display with VNC:
-
-```bash
-# Start virtual display
-Xvfb :99 -screen 0 1280x720x24 &
-export DISPLAY=:99
-
-# Start VNC server (to view remotely)
-x11vnc -display :99 -forever -nopw &
-
-# Start noVNC web interface (view in browser at http://localhost:6080)
-/usr/share/novnc/utils/launch.sh --vnc localhost:5900 &
-
-# Now start the browser
-browser-start.js
+sudo apt install -y chromium-browser
 ```
 
 On Linux, `browser-start.js` will automatically:
@@ -45,9 +24,10 @@ On Linux, `browser-start.js` will automatically:
 
 ✓ CORRECT:
 ```bash
-browser-start.js
+browser-start.js --headless
 browser-nav.js https://example.com
-browser-pick.js "Click the button"
+browser-click.js "#submit-btn"
+browser-fill.js "#username" "john_doe"
 ```
 
 ✗ INCORRECT:
@@ -59,11 +39,13 @@ node browser-start.js        # Don't use 'node' prefix
 ## Start Chrome
 
 ```bash
-browser-start.js              # Start with fresh profile
+browser-start.js --headless   # Start in headless mode (no display required, for containers)
 browser-start.js --profile    # Start with your Chrome profile (cookies, logins)
 ```
 
-Launch Chrome with remote debugging on `:9222`. Use `--profile` to preserve user's authentication state.
+Launch Chrome with remote debugging on `:9222`.
+- Use `--headless` for containerized environments (no virtual display needed)
+- Use `--profile` to preserve user's authentication state
 
 ## Navigate
 
@@ -73,6 +55,26 @@ browser-nav.js https://example.com --new
 ```
 
 Navigate to URLs. Use `--new` flag to open in a new tab instead of reusing current tab.
+
+## Click Elements
+
+```bash
+browser-click.js "#submit-btn"
+browser-click.js "button.primary"
+browser-click.js "a[href='/about']"
+```
+
+Click elements by CSS selector. Waits for the element to appear before clicking.
+
+## Fill Form Inputs
+
+```bash
+browser-fill.js "#username" "john_doe"
+browser-fill.js "input[name='email']" "test@example.com"
+browser-fill.js ".search-box" "search query"
+```
+
+Fill form inputs by CSS selector. Clears existing value and types the new value.
 
 ## Evaluate JavaScript
 
@@ -91,19 +93,6 @@ browser-screenshot.js
 
 Capture current viewport and return temporary file path. Use this to visually inspect page state or verify UI changes.
 
-## Pick Elements
-
-```bash
-browser-pick.js "Click the submit button"
-```
-
-**IMPORTANT**: Use this tool when the user wants to select specific DOM elements on the page. This launches an interactive picker that lets the user click elements to select them. The user can select multiple elements (Cmd/Ctrl+Click) and press Enter when done. The tool returns CSS selectors for the selected elements.
-
-Common use cases:
-- User says "I want to click that button" → Use this tool to let them select it
-- User says "extract data from these items" → Use this tool to let them select the elements
-- When you need specific selectors but the page structure is complex or ambiguous
-
 ## Cookies
 
 ```bash
@@ -111,40 +100,3 @@ browser-cookies.js
 ```
 
 Display all cookies for the current tab including domain, path, httpOnly, and secure flags. Use this to debug authentication issues or inspect session state.
-
-## Search Google
-
-```bash
-browser-search.js "rust programming"
-browser-search.js "climate change" -n 10
-browser-search.js "machine learning" -n 3 --content
-```
-
-Search Google and return results. Options:
-- `-n <num>` - Number of results (default: 5, supports pagination for higher numbers)
-- `--content` - Fetch and extract readable content as markdown from each result
-
-## Extract Page Content
-
-```bash
-browser-content.js https://example.com
-```
-
-Navigate to a URL and extract readable content as markdown. Uses Mozilla Readability for article extraction and Turndown for HTML-to-markdown conversion. Works on pages with JavaScript content (waits for page to load).
-
-## Search + Content Strategies
-
-**Use `browser-search.js --content`** when you want content from all search results in one go. This is faster but fetches content from possibly irrelevant results.
-
-```bash
-browser-search.js "climate change effects" -n 3 --content
-```
-
-**Use `browser-search.js` + `browser-content.js`** when you want to selectively fetch content from only relevant results. First search, review the titles/snippets, then fetch content only for promising URLs.
-
-```bash
-browser-search.js "climate change effects" -n 10
-# Review results, then fetch specific ones:
-browser-content.js https://relevant-article.com
-browser-content.js https://another-good-source.com
-```
